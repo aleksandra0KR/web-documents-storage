@@ -27,7 +27,7 @@ func InitializeDBPostgres(maxIdleConnections, maxOpenConnections int) *Postgres 
 	dbPort := os.Getenv("DB_PORT")
 
 	connectionDBUrl := fmt.Sprintf(`host=%s user=%s password=%s dbname=%s port=%s`, dbHost, dbUser, dbPassword, dbName, dbPort)
-
+	log.Infof(connectionDBUrl)
 	db, err := gorm.Open(postgres.Open(connectionDBUrl), &gorm.Config{})
 	if err != nil {
 		log.Fatalln(err)
@@ -48,12 +48,4 @@ func InitializeDBPostgres(maxIdleConnections, maxOpenConnections int) *Postgres 
 
 func (postgresDB *Postgres) GetDB() *gorm.DB {
 	return postgresDB.db
-}
-
-func (postgresDB *Postgres) PingDB() error {
-	db, err := postgresDB.GetDB().DB()
-	if err != nil {
-		return err
-	}
-	return db.Ping()
 }
