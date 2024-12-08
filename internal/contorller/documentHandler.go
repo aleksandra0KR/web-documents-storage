@@ -15,24 +15,22 @@ import (
 )
 
 func (h *Handler) UploadDocument(c *gin.Context) {
-	metaStr := c.PostForm("meta")
 	var meta model.Meta
 	var fileData []byte
 	var jsonDataBytes []byte
 	var err error
 
+	metaStr := c.PostForm("meta")
 	if err := json.Unmarshal([]byte(metaStr), &meta); err != nil {
 		c.JSON(model.BadRequestStatusResponse, gin.H{"error": gin.H{"code": model.BadRequestStatusResponse, "text": fmt.Sprintf("invalid meta format: %v", err)}})
 		return
 	}
 	if meta.File == true {
 		file, err := c.FormFile("file")
-
 		if err != nil {
 			c.JSON(model.BadRequestStatusResponse, gin.H{"error": gin.H{"code": model.BadRequestStatusResponse, "text": fmt.Sprintf("file not provided or invalid: %v", err)}})
 			return
 		}
-
 		openedFile, err := file.Open()
 		if err != nil {
 			c.JSON(model.InternalServerErrorStatusResponse, gin.H{"error": gin.H{"code": model.InternalServerErrorStatusResponse, "text": fmt.Sprintf("failed to open file: %v", err)}})
@@ -104,6 +102,7 @@ func (h *Handler) GetDocumentByID(c *gin.Context) {
 		c.JSON(model.UnauthorizedStatusResponse, gin.H{"error": gin.H{"code": model.UnauthorizedStatusResponse, "text": err.Error()}})
 		return
 	}
+
 	document, err := h.service.GetDocumentByID(id, claims.Login)
 	if err != nil {
 		if string(err.Error()) == "invalid grant" {
@@ -113,12 +112,14 @@ func (h *Handler) GetDocumentByID(c *gin.Context) {
 		c.JSON(model.InternalServerErrorStatusResponse, gin.H{"error": gin.H{"code": model.InternalServerErrorStatusResponse, "text": err.Error()}})
 		return
 	}
+
 	if c.Request.Method == http.MethodHead {
 		c.Header("Content-Type", document.Mime)
 		c.Header("Content-Length", strconv.Itoa(len(document.FileData)))
 		c.Status(model.SuccessfulStatusResponse)
 		return
 	}
+
 	if document.FileData != nil {
 		tempFile, err := os.CreateTemp("", "uploaded-*.")
 		if err != nil {
@@ -199,7 +200,6 @@ func (h *Handler) GetDocuments(c *gin.Context) {
 			"grant":   grant,
 		})
 	}
-
 	response := gin.H{
 		"data": gin.H{
 			"docs": responseDocs,
@@ -212,7 +212,6 @@ func (h *Handler) GetDocuments(c *gin.Context) {
 		c.Status(model.SuccessfulStatusResponse)
 		return
 	}
-
 	c.JSON(model.SuccessfulStatusResponse, gin.H{"response": response})
 }
 
@@ -234,6 +233,5 @@ func (h *Handler) DeleteDocumentByID(c *gin.Context) {
 		c.JSON(model.InternalServerErrorStatusResponse, gin.H{"error": gin.H{"code": model.InternalServerErrorStatusResponse, "text": err.Error()}})
 		return
 	}
-
 	c.JSON(model.SuccessfulStatusResponse, gin.H{"response": gin.H{token: true}})
 }
